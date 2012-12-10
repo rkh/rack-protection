@@ -23,11 +23,11 @@ module Rack
         unescaped = path.gsub('%2e', '.').gsub('%2f', '/')
 
         unescaped.split('/').each do |part|
-          next if part.empty? or part == '.'
+          next if part == '.'
           part == '..' ? parts.pop : parts << part
         end
 
-        cleaned = '/' << parts.join('/')
+        cleaned = parts.join('/')
         cleaned << '/' if parts.any? and unescaped =~ /\/\.{0,2}$/
         cleaned
       end
