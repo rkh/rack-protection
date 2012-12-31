@@ -49,8 +49,8 @@ Prevented by:
 
 Prevented by:
 
-* `Rack::Protection::EscapedParams`
-* `Rack::Protection::XssHeader` (Internet Explorer only)
+* `Rack::Protection::EscapedParams` (not included by `use Rack::Protection`)
+* `Rack::Protection::XSSHeader` (Internet Explorer only)
 
 ## Clickjacking
 
@@ -80,24 +80,3 @@ Prevented by:
 
     gem install rack-protection
 
-# History
-
-## v0.1.0 (2011/06/20)
-
-First public release.
-
-## v1.0.0 (2011/09/02)
-
-First stable release.
-
-Changes:
-
-* Fix bug in JsonCsrf
-
-## v1.1.0 (2011/09/03)
-
-Second public release.
-
-Changes:
-
-* Dependency on `escape_utils` is now optional

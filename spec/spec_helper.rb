@@ -1,5 +1,6 @@
 require 'rack/protection'
 require 'rack/test'
+require 'rack'
 require 'forwardable'
 require 'stringio'
 
@@ -21,11 +22,15 @@ if version == "1.3"
   end
 end
 
+unless Rack::MockResponse.method_defined? :header
+  Rack::MockResponse.send(:alias_method, :header, :headers)
+end
+
 module DummyApp
   def self.call(env)
     Thread.current[:last_env] = env
     body = (env['REQUEST_METHOD'] == 'HEAD' ? '' : 'ok')
-    [200, {'Content-Type' => 'text/plain'}, [body]]
+    [200, {'Content-Type' => env['wants'] || 'text/plain'}, [body]]
   end
 end
 
