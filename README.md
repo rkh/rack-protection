@@ -43,7 +43,7 @@ Prevented by:
 * `Rack::Protection::JsonCsrf`
 * `Rack::Protection::RemoteReferrer` (not included by `use Rack::Protection`)
 * `Rack::Protection::RemoteToken`
-* `Rack::Protection::HttpOrigin`
+* `Rack::Protection::HttpOrigin` (not included by `use Rack::Protection`)
 
 ## Cross Site Scripting
 
