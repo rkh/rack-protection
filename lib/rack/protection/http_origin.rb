@@ -24,10 +24,7 @@ module Rack
         return true if safe? env
         return true unless origin = env['HTTP_ORIGIN']
         return true if base_url(env) == origin
-        valid = Array(options[:origin_whitelist]).include?(origin)
-        warn env, "attack prevented by #{self.class}" unless valid
-
-        valid
+        Array(options[:origin_whitelist]).include? origin
       end
 
     end
