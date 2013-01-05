@@ -22,7 +22,6 @@ module Rack
       except = Array options[:except]
       Rack::Builder.new do
         use ::Rack::Protection::FrameOptions,     options unless except.include? :frame_options
-        use ::Rack::Protection::HttpOrigin,       options unless except.include? :http_origin
         use ::Rack::Protection::IPSpoofing,       options unless except.include? :ip_spoofing
         use ::Rack::Protection::JsonCsrf,         options unless except.include? :json_csrf
         use ::Rack::Protection::PathTraversal,    options unless except.include? :path_traversal
