@@ -40,5 +40,14 @@ describe Rack::Protection::EscapedParams do
       get '/?95df8d9bf5237ad08df3115ee74dcb10'
       body.should == 'hi'
     end
+
+    it 'escapes slashes in post bodys' do
+      mock_app do |env|
+        request = Rack::Request.new(env)
+        [200, {'Content-Type' => 'text/plain'}, [request.params['foo']]]
+      end
+      post '/', :foo => "/bar/batz"
+      body.should == "&#47;bar&#47;batz"
+    end
   end
 end
