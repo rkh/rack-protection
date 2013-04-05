@@ -7,7 +7,7 @@ module Rack
   module Protection
     class Base
       DEFAULT_OPTIONS = {
-        :reaction    => :default_reaction, :logging   => true,
+        :reaction    => nil, :logging   => true,
         :message     => 'Forbidden',       :encryptor => Digest::SHA1,
         :session_key => 'rack.session',    :status    => 403,
         :allow_empty_referrer => true,
@@ -22,7 +22,7 @@ module Rack
       end
 
       def self.default_reaction(reaction)
-        alias_method(:default_reaction, reaction)
+        define_method(:default_reaction) { options[:reaction] || reaction }
       end
 
       def default_options
@@ -50,7 +50,7 @@ module Rack
       end
 
       def react(env)
-        result = send(options[:reaction], env)
+        result = send(default_reaction, env)
         result if Array === result and result.size == 3
       end
 
@@ -101,7 +101,9 @@ module Rack
         options[:encryptor].hexdigest value.to_s
       end
 
-      alias default_reaction deny
+      def default_reaction
+        options[:reaction] || :deny
+      end
 
       def html?(headers)
         return false unless header = headers.detect { |k,v| k.downcase == 'content-type' }
