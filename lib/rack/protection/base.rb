@@ -67,12 +67,14 @@ module Rack
       end
 
       def deny(env)
-        warn env, "attack prevented by #{self.class}"
+        attacker_ip = [env["HTTP_CLIENT_IP"], env["REMOTE_ADDR"], env["HTTP_X_REAL_IP"]].reject(&:blank?).uniq.join("/")
+        warn env, "attack prevented by #{self.class} - #{attacker_ip} - #{env["HTTP_USER_AGENT"]} - #{env["REQUEST_URI"]}"
         [options[:status], {'Content-Type' => 'text/plain'}, [options[:message]]]
       end
 
       def report(env)
-        warn env, "attack reported by #{self.class}"
+        attacker_ip = [env["HTTP_CLIENT_IP"], env["REMOTE_ADDR"], env["HTTP_X_REAL_IP"]].reject(&:blank?).uniq.join("/")
+        warn env, "attack reported by #{self.class} - #{attacker_ip} - #{env["HTTP_USER_AGENT"]} - #{env["REQUEST_URI"]}"
         env[options[:report_key]] = true
       end
 
