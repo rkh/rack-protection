@@ -1,5 +1,6 @@
 require 'rack/protection'
 require 'rack/utils'
+require 'tempfile'
 
 begin
   require 'escape_utils'
@@ -47,32 +48,36 @@ module Rack
 
       def call(env)
         request  = Request.new(env)
-        get_was  = handle(request.GET)
-        post_was = handle(request.POST) rescue nil
+        get_was  = handle(request.GET, env)
+        post_was = handle(request.POST, env) rescue nil
         app.call env
       ensure
         request.GET.replace  get_was  if get_was
         request.POST.replace post_was if post_was
       end
 
-      def handle(hash)
+      def handle(hash, env)
         was = hash.dup
-        hash.replace escape(hash)
+        hash.replace escape(hash, env)
         was
       end
 
-      def escape(object)
+      def escape(object, env)
         case object
-        when Hash   then escape_hash(object)
+        when Hash   then escape_hash(object, env)
         when Array  then object.map { |o| escape(o) }
         when String then escape_string(object)
-        else nil
+        when Tempfile then object
+        when nil then nil
+        else
+          warn(env, "Unable to escape unhandled #{object.inspect} - dropping from params")
+          nil
         end
       end
 
-      def escape_hash(hash)
+      def escape_hash(hash, env)
         hash = hash.dup
-        hash.each { |k,v| hash[k] = escape(v) }
+        hash.each { |k,v| hash[k] = escape(v, env) }
         hash
       end
 
