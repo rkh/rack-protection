@@ -37,7 +37,7 @@ describe Rack::Protection::FrameOptions do
 
   it 'should allow based on specific domain' do
     mock_app do
-      use Rack::Protection::FrameOptions, :allow_if => ->(domain){
+      use Rack::Protection::FrameOptions, :allow_if => proc {|domain|
         domain == 'google.com'
       }
       run DummyApp
@@ -48,7 +48,7 @@ describe Rack::Protection::FrameOptions do
 
   it 'should deny based on specific domain' do
     mock_app do
-      use Rack::Protection::FrameOptions, :allow_if => ->(domain){
+      use Rack::Protection::FrameOptions, :allow_if => proc {|domain|
         domain == 'yahoo.com'
       }
       run DummyApp
