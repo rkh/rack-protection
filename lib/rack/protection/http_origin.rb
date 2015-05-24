@@ -21,8 +21,10 @@ module Rack
       end
 
       def accepts?(env)
+        origin = env['HTTP_ORIGIN']
+
         return true if safe? env
-        return true unless origin = env['HTTP_ORIGIN']
+        return true unless origin && origin != 'null'
         return true if base_url(env) == origin
         Array(options[:origin_whitelist]).include? origin
       end
