@@ -34,5 +34,10 @@ describe Rack::Protection::Base do
       env = {"HTTP_HOST" => "foo.com", "HTTP_REFERER" => "http://bar.com/bad|uri"}
       expect(subject.referrer(env)).to be_nil
     end
+
+    it "Returns false when content-type is nil" do
+      headers = { "Content-Type" => nil }
+      expect(subject.html?(headers)).to eq(false)
+    end
   end
 end
