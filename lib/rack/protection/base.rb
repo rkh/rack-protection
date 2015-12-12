@@ -1,5 +1,4 @@
 require 'rack/protection'
-require 'rack/utils'
 require 'digest'
 require 'logger'
 require 'uri'
@@ -111,8 +110,28 @@ module Rack
         options[:encryptor].hexdigest value.to_s
       end
 
+      # The implementations of secure_compare and bytesize are taken from
+      # Rack::Utils to be able to support rack older than XXXX.
       def secure_compare(a, b)
-        Rack::Utils.secure_compare(a.to_s, b.to_s)
+        return false unless bytesize(a) == bytesize(b)
+
+        l = a.unpack("C*")
+
+        r, i = 0, -1
+        b.each_byte { |v| r |= v ^ l[i+=1] }
+        r == 0
+      end
+
+      # Return the bytesize of String; uses String#size under Ruby 1.8 and
+      # String#bytesize under 1.9.
+      if ''.respond_to?(:bytesize)
+        def bytesize(string)
+          string.bytesize
+        end
+      else
+        def bytesize(string)
+          string.size
+        end
       end
 
       alias default_reaction deny
