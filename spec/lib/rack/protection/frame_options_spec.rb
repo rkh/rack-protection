@@ -34,4 +34,27 @@ describe Rack::Protection::FrameOptions do
     mock_app with_headers("X-Frame-Options" => "allow")
     expect(get('/', {}, 'wants' => 'text/html').headers["X-Frame-Options"]).to eq("allow")
   end
+
+  it 'should allow based on specific domain' do
+    mock_app do
+      use Rack::Protection::FrameOptions, :allow_if => proc {|domain|
+        domain == 'google.com'
+      }
+      run DummyApp
+    end
+
+    expect(get('/', {}, 'wants' => 'text/html').headers["X-Frame-Options"]).to eq("")
+  end
+
+  it 'should deny based on specific domain' do
+    mock_app do
+      use Rack::Protection::FrameOptions, :allow_if => proc {|domain|
+        domain == 'yahoo.com'
+      }
+      run DummyApp
+    end
+
+    expect(get('/', {}, 'wants' => 'text/html').headers["X-Frame-Options"]).to eq("DENY")
+  end
+
 end

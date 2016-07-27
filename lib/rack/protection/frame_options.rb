@@ -17,7 +17,8 @@ module Rack
     #                 frame. Use :deny to forbid any embedding, :sameorigin
     #                 to allow embedding from the same origin (default).
     class FrameOptions < Base
-      default_options :frame_options => :sameorigin
+      default_options :frame_options => :sameorigin,
+                      :allow_if => nil
 
       def frame_options
         @frame_options ||= begin
@@ -27,9 +28,15 @@ module Rack
         end
       end
 
+      def allow_specific_domain(env)
+        return nil unless options[:allow_if].is_a? Proc
+        referrer_domain = env["HTTP_REFERER"].scan(%r(http://(.+?)[\?/])).flatten.first
+        options[:allow_if].call(referrer_domain) ? "" : "DENY"
+      end
+
       def call(env)
-        status, headers, body        = @app.call(env)
-        headers['X-Frame-Options'] ||= frame_options if html? headers
+        status, headers, body = @app.call(env)
+        headers['X-Frame-Options'] ||= allow_specific_domain(env) || frame_options if html? headers
         [status, headers, body]
       end
     end
