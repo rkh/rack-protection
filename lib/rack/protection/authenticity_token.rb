@@ -1,4 +1,5 @@
 require 'rack/protection'
+require 'rack/protection/utils'
 
 module Rack
   module Protection
@@ -18,16 +19,70 @@ module Rack
     #
     class AuthenticityToken < Base
       default_options :authenticity_param => 'authenticity_token',
+                      :authenticity_token_length => 32,
                       :allow_if => nil
+
+      def self.token(session)
+        Utils.mask_token(session[:csrf])
+      end
 
       def accepts?(env)
         session = session env
-        token   = session[:csrf] ||= session['_csrf_token'] || random_string
+        session[:csrf] ||= Utils.random_token(token_length)
 
         safe?(env) ||
-          secure_compare(env['HTTP_X_CSRF_TOKEN'], token) ||
-          secure_compare(Request.new(env).params[options[:authenticity_param]], token) ||
+          valid_token?(session, env['HTTP_X_CSRF_TOKEN']) ||
+          valid_token?(session, Request.new(env).params[options[:authenticity_param]]) ||
           ( options[:allow_if] && options[:allow_if].call(env) )
+      end
+
+      private
+
+      def token_length
+        options[:authenticity_token_length]
+      end
+
+      # Checks the client's masked token to see if it matches the
+      # session token.
+      def valid_token?(session, token)
+        return false if token.nil? || token.empty?
+
+        begin
+          token = Utils.decode_token(token)
+        rescue ArgumentError # encoded_masked_token is invalid Base64
+          return false
+        end
+
+        # See if it's actually a masked token or not. We should be able
+        # to handle any unmasked tokens that we've issued without error.
+
+        if unmasked_token?(token)
+          compare_with_real_token token, session
+
+        elsif masked_token?(token)
+          token = Utils.unmask_decoded_token(token)
+
+          compare_with_real_token token, session
+
+        else
+          false # Token is malformed
+        end
+      end
+
+      def unmasked_token?(token)
+        token.length == token_length
+      end
+
+      def masked_token?(token)
+        token.length == token_length * 2
+      end
+
+      def compare_with_real_token(token, session)
+        secure_compare(token, real_token(session))
+      end
+
+      def real_token(session)
+        Utils.decode_token(session[:csrf])
       end
     end
   end
